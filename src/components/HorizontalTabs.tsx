@@ -12,6 +12,7 @@ export type HorizontalTabs = Array<{
     title: string;
     href: string;
     icon?: React.ReactNode;
+    badge?: string | number;
     showProfessional?: boolean;
 }>;
 
@@ -83,6 +84,14 @@ export function HorizontalTabs({
                                     >
                                         {item.icon && item.icon}
                                         <span>{item.title}</span>
+                                        {item.badge !== undefined && (
+                                            <Badge
+                                                variant="secondary"
+                                                className="ml-2"
+                                            >
+                                                {item.badge}
+                                            </Badge>
+                                        )}
                                         {isProfessional && (
                                             <Badge
                                                 variant="outlinePrimary"

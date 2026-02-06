@@ -132,7 +132,8 @@ export const orgNavSections = (): SidebarNavSection[] => [
             {
                 title: "sidebarPolicies",
                 href: "/{orgId}/settings/access/policies",
-                icon: <Shield className="size-4 flex-none" />
+                icon: <Shield className="size-4 flex-none" />,
+                isBeta: true
             },
             ...(build == "saas"
                 ? [

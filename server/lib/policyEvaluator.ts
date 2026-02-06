@@ -460,6 +460,16 @@ function evaluateStringCondition(
             return actual.includes(expected);
         case "NOT_CONTAINS":
             return !actual.includes(expected);
+        case "IN":
+            return expected
+                .split(",")
+                .map((v) => v.trim())
+                .includes(actual);
+        case "NOT_IN":
+            return !expected
+                .split(",")
+                .map((v) => v.trim())
+                .includes(actual);
         case "MATCHES":
             try {
                 return new RegExp(expected).test(actual);

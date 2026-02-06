@@ -126,6 +126,9 @@ export default function PoliciesClient({
     );
     const [loadingResources, setLoadingResources] = useState(false);
     const [draggedPolicy, setDraggedPolicy] = useState<Policy | null>(null);
+    const [chipInputValues, setChipInputValues] = useState<
+        Record<string, string>
+    >({});
 
     const PolicyAction = {
         ACCEPT: t("alwaysAllow"),
@@ -939,9 +942,12 @@ export default function PoliciesClient({
                                                 </div>
 
                                                 <div>
-                                                    <Label className="text-xs mb-1">
-                                                        Value
-                                                    </Label>
+                                                    {condition.field !==
+                                                        "HEADER" && (
+                                                        <Label className="text-xs mb-1">
+                                                            Value
+                                                        </Label>
+                                                    )}
                                                     {condition.field ===
                                                     "COUNTRY" ? (
                                                         condition.operator ===
@@ -957,7 +963,7 @@ export default function PoliciesClient({
                                                                         role="combobox"
                                                                         className="w-full justify-start h-auto min-h-[40px]"
                                                                     >
-                                                                        <div className="flex flex-wrap gap-1">
+                                                                        <div className="flex flex-wrap gap-1 py-2">
                                                                             {condition.value ? (
                                                                                 condition.value
                                                                                     .split(
@@ -1199,7 +1205,7 @@ export default function PoliciesClient({
                                                                         role="combobox"
                                                                         className="w-full justify-start h-auto min-h-[40px]"
                                                                     >
-                                                                        <div className="flex flex-wrap gap-1">
+                                                                        <div className="flex flex-wrap gap-1 py-2">
                                                                             {condition.value ? (
                                                                                 condition.value
                                                                                     .split(
@@ -1475,6 +1481,286 @@ export default function PoliciesClient({
                                                                 </PopoverContent>
                                                             </Popover>
                                                         )
+                                                    ) : condition.field ===
+                                                      "HEADER" ? (
+                                                        <div className="space-y-2">
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">
+                                                                    Header Name
+                                                                </Label>
+                                                                <Input
+                                                                    value={
+                                                                        condition.value.split(
+                                                                            ":"
+                                                                        )[0] ||
+                                                                        ""
+                                                                    }
+                                                                    onChange={(
+                                                                        e
+                                                                    ) => {
+                                                                        const headerName =
+                                                                            e
+                                                                                .target
+                                                                                .value;
+                                                                        const headerValue =
+                                                                            condition.value.split(
+                                                                                ":"
+                                                                            )[1] ||
+                                                                            "";
+                                                                        updateCondition(
+                                                                            groupIndex,
+                                                                            conditionIndex,
+                                                                            {
+                                                                                value: `${headerName}:${headerValue}`
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    placeholder="e.g., X-Custom-Header"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">
+                                                                    Value
+                                                                </Label>
+                                                                {condition.operator ===
+                                                                    "IN" ||
+                                                                condition.operator ===
+                                                                    "NOT_IN" ? (
+                                                                    <Popover>
+                                                                        <PopoverTrigger
+                                                                            asChild
+                                                                        >
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                role="combobox"
+                                                                                className="w-full justify-start min-h-[40px] h-auto"
+                                                                            >
+                                                                                <div className="flex flex-wrap gap-1 py-2">
+                                                                                    {condition.value
+                                                                                        .split(
+                                                                                            ":"
+                                                                                        )[1]
+                                                                                        ?.split(
+                                                                                            ","
+                                                                                        )
+                                                                                        .filter(
+                                                                                            Boolean
+                                                                                        )
+                                                                                        .map(
+                                                                                            (
+                                                                                                val,
+                                                                                                idx
+                                                                                            ) => (
+                                                                                                <Badge
+                                                                                                    key={
+                                                                                                        idx
+                                                                                                    }
+                                                                                                    variant="secondary"
+                                                                                                    className="text-xs"
+                                                                                                >
+                                                                                                    {
+                                                                                                        val
+                                                                                                    }
+                                                                                                </Badge>
+                                                                                            )
+                                                                                        )}
+                                                                                    {(!condition.value.split(
+                                                                                        ":"
+                                                                                    )[1] ||
+                                                                                        condition.value.split(
+                                                                                            ":"
+                                                                                        )[1]
+                                                                                            .length ===
+                                                                                            0) && (
+                                                                                        <span className="text-muted-foreground">
+                                                                                            Enter
+                                                                                            values...
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                                                                            </Button>
+                                                                        </PopoverTrigger>
+                                                                        <PopoverContent className="w-full p-0">
+                                                                            <div className="p-3 space-y-2">
+                                                                                <div className="flex flex-wrap gap-1 px-2 py-3 border rounded-md min-h-[40px]">
+                                                                                    {condition.value
+                                                                                        .split(
+                                                                                            ":"
+                                                                                        )[1]
+                                                                                        ?.split(
+                                                                                            ","
+                                                                                        )
+                                                                                        .filter(
+                                                                                            Boolean
+                                                                                        )
+                                                                                        .map(
+                                                                                            (
+                                                                                                val,
+                                                                                                idx
+                                                                                            ) => (
+                                                                                                <Badge
+                                                                                                    key={
+                                                                                                        idx
+                                                                                                    }
+                                                                                                    variant="secondary"
+                                                                                                    className="text-xs"
+                                                                                                >
+                                                                                                    {
+                                                                                                        val
+                                                                                                    }
+                                                                                                    <button
+                                                                                                        type="button"
+                                                                                                        className="ml-1 hover:text-destructive"
+                                                                                                        onClick={() => {
+                                                                                                            const headerName =
+                                                                                                                condition.value.split(
+                                                                                                                    ":"
+                                                                                                                )[0] ||
+                                                                                                                "";
+                                                                                                            const values =
+                                                                                                                condition.value
+                                                                                                                    .split(
+                                                                                                                        ":"
+                                                                                                                    )[1]
+                                                                                                                    ?.split(
+                                                                                                                        ","
+                                                                                                                    )
+                                                                                                                    .filter(
+                                                                                                                        Boolean
+                                                                                                                    ) ||
+                                                                                                                [];
+                                                                                                            values.splice(
+                                                                                                                idx,
+                                                                                                                1
+                                                                                                            );
+                                                                                                            updateCondition(
+                                                                                                                groupIndex,
+                                                                                                                conditionIndex,
+                                                                                                                {
+                                                                                                                    value: `${headerName}:${values.join(
+                                                                                                                        ","
+                                                                                                                    )}`
+                                                                                                                }
+                                                                                                            );
+                                                                                                        }}
+                                                                                                    >
+                                                                                                        ×
+                                                                                                    </button>
+                                                                                                </Badge>
+                                                                                            )
+                                                                                        )}
+                                                                                    {(!condition.value.split(
+                                                                                        ":"
+                                                                                    )[1] ||
+                                                                                        condition.value.split(
+                                                                                            ":"
+                                                                                        )[1]
+                                                                                            .length ===
+                                                                                            0) && (
+                                                                                        <span className="text-sm text-muted-foreground">
+                                                                                            No
+                                                                                            values
+                                                                                            added
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                <Input
+                                                                                    placeholder="Type a value and press Enter"
+                                                                                    onKeyDown={(
+                                                                                        e
+                                                                                    ) => {
+                                                                                        if (
+                                                                                            e.key ===
+                                                                                            "Enter"
+                                                                                        ) {
+                                                                                            e.preventDefault();
+                                                                                            const input =
+                                                                                                e.currentTarget;
+                                                                                            const newValue =
+                                                                                                input.value.trim();
+                                                                                            if (
+                                                                                                newValue
+                                                                                            ) {
+                                                                                                const headerName =
+                                                                                                    condition.value.split(
+                                                                                                        ":"
+                                                                                                    )[0] ||
+                                                                                                    "";
+                                                                                                const existingValues =
+                                                                                                    condition.value
+                                                                                                        .split(
+                                                                                                            ":"
+                                                                                                        )[1]
+                                                                                                        ?.split(
+                                                                                                            ","
+                                                                                                        )
+                                                                                                        .filter(
+                                                                                                            Boolean
+                                                                                                        ) ||
+                                                                                                    [];
+                                                                                                if (
+                                                                                                    !existingValues.includes(
+                                                                                                        newValue
+                                                                                                    )
+                                                                                                ) {
+                                                                                                    const allValues =
+                                                                                                        [
+                                                                                                            ...existingValues,
+                                                                                                            newValue
+                                                                                                        ];
+                                                                                                    updateCondition(
+                                                                                                        groupIndex,
+                                                                                                        conditionIndex,
+                                                                                                        {
+                                                                                                            value: `${headerName}:${allValues.join(
+                                                                                                                ","
+                                                                                                            )}`
+                                                                                                        }
+                                                                                                    );
+                                                                                                    input.value =
+                                                                                                        "";
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        </PopoverContent>
+                                                                    </Popover>
+                                                                ) : (
+                                                                    <Input
+                                                                        value={
+                                                                            condition.value.split(
+                                                                                ":"
+                                                                            )[1] ||
+                                                                            ""
+                                                                        }
+                                                                        onChange={(
+                                                                            e
+                                                                        ) => {
+                                                                            const headerName =
+                                                                                condition.value.split(
+                                                                                    ":"
+                                                                                )[0] ||
+                                                                                "";
+                                                                            const headerValue =
+                                                                                e
+                                                                                    .target
+                                                                                    .value;
+                                                                            updateCondition(
+                                                                                groupIndex,
+                                                                                conditionIndex,
+                                                                                {
+                                                                                    value: `${headerName}:${headerValue}`
+                                                                                }
+                                                                            );
+                                                                        }}
+                                                                        placeholder="e.g., expected-value"
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     ) : (
                                                         <Input
                                                             value={

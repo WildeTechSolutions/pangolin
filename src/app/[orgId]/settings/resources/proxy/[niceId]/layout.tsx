@@ -15,6 +15,9 @@ import { cache } from "react";
 import ResourceInfoBox from "@app/components/ResourceInfoBox";
 import { GetSiteResponse } from "@server/routers/site";
 import { getTranslations } from "next-intl/server";
+import { db } from "@server/db";
+import { accessPolicies, resourcePolicies } from "@server/db";
+import { eq, and } from "drizzle-orm";
 
 interface ResourceLayoutProps {
     children: React.ReactNode;
@@ -74,6 +77,31 @@ export default async function ResourceLayout(props: ResourceLayoutProps) {
         redirect(`/${params.orgId}/settings/resources`);
     }
 
+    // Get policy count for this resource (org-wide + resource-specific)
+    let policyCount = 0;
+    try {
+        // Count org-wide policies
+        const orgWidePolicies = await db
+            .select()
+            .from(accessPolicies)
+            .where(
+                and(
+                    eq(accessPolicies.orgId, params.orgId),
+                    eq(accessPolicies.scope, "ORGANIZATION")
+                )
+            );
+
+        // Count resource-specific policies assigned to this resource
+        const resourceSpecificPolicies = await db
+            .select()
+            .from(resourcePolicies)
+            .where(eq(resourcePolicies.resourceId, resource.resourceId));
+
+        policyCount = orgWidePolicies.length + resourceSpecificPolicies.length;
+    } catch (error) {
+        console.error("Error fetching policy count:", error);
+    }
+
     const navItems = [
         {
             title: t("general"),
@@ -93,6 +121,11 @@ export default async function ResourceLayout(props: ResourceLayoutProps) {
         navItems.push({
             title: t("rules"),
             href: `/{orgId}/settings/resources/proxy/{niceId}/rules`
+        });
+        navItems.push({
+            title: t("policies"),
+            href: `/{orgId}/settings/resources/proxy/{niceId}/policies`,
+            badge: policyCount
         });
     }
 

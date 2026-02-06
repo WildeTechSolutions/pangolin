@@ -204,6 +204,7 @@
     "proxy": "Proxy",
     "internal": "Internal",
     "rules": "Rules",
+    "policies": "Policies",
     "resourceSettingDescription": "Configure the settings on the resource",
     "resourceSetting": "{resourceName} Settings",
     "alwaysAllow": "Bypass Auth",
