@@ -97,7 +97,8 @@ export async function verifyResourceSession(
             requestIp,
             path,
             headers,
-            query
+            query,
+            method
         } = parsedBody.data;
 
         // Extract HTTP Basic Auth credentials if present
