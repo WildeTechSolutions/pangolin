@@ -18,6 +18,7 @@ import * as apiKeys from "./apiKeys";
 import * as logs from "./auditLogs";
 import * as newt from "./newt";
 import * as olm from "./olm";
+import policyRouter from "./policy";
 import HttpCode from "@server/types/HttpCode";
 import {
     verifyAccessTokenAccess,
@@ -60,6 +61,9 @@ unauthenticated.get("/", (_, res) => {
 // Authenticated Root routes
 export const authenticated = Router();
 authenticated.use(verifySessionUserMiddleware);
+
+// Access Policies routes
+authenticated.use(policyRouter);
 
 authenticated.get("/pick-org-defaults", org.pickOrgDefaults);
 authenticated.get("/org/checkId", org.checkId);

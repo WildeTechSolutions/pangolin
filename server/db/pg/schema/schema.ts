@@ -7,7 +7,8 @@ import {
     bigint,
     real,
     text,
-    index
+    index,
+    timestamp
 } from "drizzle-orm/pg-core";
 import { InferSelectModel } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -545,6 +546,57 @@ export const resourceRules = pgTable("resourceRules", {
     value: varchar("value").notNull()
 });
 
+// Access Policies - Cloudflare WAF-style rule engine
+export const accessPolicies = pgTable("accessPolicies", {
+    policyId: serial("policyId").primaryKey(),
+    orgId: varchar("orgId")
+        .notNull()
+        .references(() => orgs.orgId, { onDelete: "cascade" }),
+    name: varchar("name").notNull(),
+    description: text("description"),
+    enabled: boolean("enabled").notNull().default(true),
+    action: varchar("action").notNull(), // ACCEPT, DROP, PASS
+    scope: varchar("scope").notNull().default("RESOURCE"), // ORGANIZATION, RESOURCE
+    priority: integer("priority").notNull().default(0),
+    createdAt: timestamp("createdAt").notNull(),
+    updatedAt: timestamp("updatedAt").notNull()
+});
+
+// Condition Groups - supports AND/OR logic
+export const policyConditionGroups = pgTable("policyConditionGroups", {
+    groupId: serial("groupId").primaryKey(),
+    policyId: integer("policyId")
+        .notNull()
+        .references(() => accessPolicies.policyId, { onDelete: "cascade" }),
+    operator: varchar("operator").notNull(), // AND, OR
+    priority: integer("priority").notNull().default(0)
+});
+
+// Individual Conditions within a group
+export const policyConditions = pgTable("policyConditions", {
+    conditionId: serial("conditionId").primaryKey(),
+    groupId: integer("groupId")
+        .notNull()
+        .references(() => policyConditionGroups.groupId, {
+            onDelete: "cascade"
+        }),
+    field: varchar("field").notNull(), // IP, COUNTRY, ASN, CIDR, PATH, HEADER, METHOD, etc.
+    operator: varchar("operator").notNull(), // EQUALS, NOT_EQUALS, CONTAINS, IN, NOT_IN, MATCHES, etc.
+    value: text("value").notNull(),
+    priority: integer("priority").notNull().default(0)
+});
+
+// Link policies to resources
+export const resourcePolicies = pgTable("resourcePolicies", {
+    resourceId: integer("resourceId")
+        .notNull()
+        .references(() => resources.resourceId, { onDelete: "cascade" }),
+    policyId: integer("policyId")
+        .notNull()
+        .references(() => accessPolicies.policyId, { onDelete: "cascade" }),
+    priority: integer("priority").notNull().default(0)
+});
+
 export const supporterKey = pgTable("supporterKey", {
     keyId: serial("keyId").primaryKey(),
     key: varchar("key").notNull(),
@@ -833,6 +885,12 @@ export type Target = InferSelectModel<typeof targets>;
 export type Session = InferSelectModel<typeof sessions>;
 export type Newt = InferSelectModel<typeof newts>;
 export type NewtSession = InferSelectModel<typeof newtSessions>;
+export type AccessPolicy = InferSelectModel<typeof accessPolicies>;
+export type PolicyConditionGroup = InferSelectModel<
+    typeof policyConditionGroups
+>;
+export type PolicyCondition = InferSelectModel<typeof policyConditions>;
+export type ResourcePolicy = InferSelectModel<typeof resourcePolicies>;
 export type EmailVerificationCode = InferSelectModel<
     typeof emailVerificationCodes
 >;

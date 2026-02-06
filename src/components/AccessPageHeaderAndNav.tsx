@@ -23,6 +23,10 @@ export default function AccessPageHeaderAndNav({
         {
             title: t("roles"),
             href: `/{orgId}/settings/access/roles`
+        },
+        {
+            title: "Policies",
+            href: `/{orgId}/settings/access/policies`
         }
     ];
 

@@ -713,6 +713,57 @@ export const resourceRules = sqliteTable("resourceRules", {
     value: text("value").notNull()
 });
 
+// Access Policies - Cloudflare WAF-style rule engine
+export const accessPolicies = sqliteTable("accessPolicies", {
+    policyId: integer("policyId").primaryKey({ autoIncrement: true }),
+    orgId: text("orgId")
+        .notNull()
+        .references(() => orgs.orgId, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    action: text("action").notNull(), // ACCEPT, DROP, PASS
+    scope: text("scope").notNull().default("RESOURCE"), // ORGANIZATION, RESOURCE
+    priority: integer("priority").notNull().default(0),
+    createdAt: text("createdAt").notNull(),
+    updatedAt: text("updatedAt").notNull()
+});
+
+// Condition Groups - supports AND/OR logic
+export const policyConditionGroups = sqliteTable("policyConditionGroups", {
+    groupId: integer("groupId").primaryKey({ autoIncrement: true }),
+    policyId: integer("policyId")
+        .notNull()
+        .references(() => accessPolicies.policyId, { onDelete: "cascade" }),
+    operator: text("operator").notNull(), // AND, OR
+    priority: integer("priority").notNull().default(0)
+});
+
+// Individual Conditions within a group
+export const policyConditions = sqliteTable("policyConditions", {
+    conditionId: integer("conditionId").primaryKey({ autoIncrement: true }),
+    groupId: integer("groupId")
+        .notNull()
+        .references(() => policyConditionGroups.groupId, {
+            onDelete: "cascade"
+        }),
+    field: text("field").notNull(), // IP, COUNTRY, ASN, CIDR, PATH, HEADER, METHOD, etc.
+    operator: text("operator").notNull(), // EQUALS, NOT_EQUALS, CONTAINS, IN, NOT_IN, MATCHES, etc.
+    value: text("value").notNull(),
+    priority: integer("priority").notNull().default(0)
+});
+
+// Link policies to resources
+export const resourcePolicies = sqliteTable("resourcePolicies", {
+    resourceId: integer("resourceId")
+        .notNull()
+        .references(() => resources.resourceId, { onDelete: "cascade" }),
+    policyId: integer("policyId")
+        .notNull()
+        .references(() => accessPolicies.policyId, { onDelete: "cascade" }),
+    priority: integer("priority").notNull().default(0)
+});
+
 export const supporterKey = sqliteTable("supporterKey", {
     keyId: integer("keyId").primaryKey({ autoIncrement: true }),
     key: text("key").notNull(),
@@ -909,6 +960,12 @@ export type ResourceAccessToken = InferSelectModel<typeof resourceAccessToken>;
 export type ResourceWhitelist = InferSelectModel<typeof resourceWhitelist>;
 export type VersionMigration = InferSelectModel<typeof versionMigrations>;
 export type ResourceRule = InferSelectModel<typeof resourceRules>;
+export type AccessPolicy = InferSelectModel<typeof accessPolicies>;
+export type PolicyConditionGroup = InferSelectModel<
+    typeof policyConditionGroups
+>;
+export type PolicyCondition = InferSelectModel<typeof policyConditions>;
+export type ResourcePolicy = InferSelectModel<typeof resourcePolicies>;
 export type Domain = InferSelectModel<typeof domains>;
 export type DnsRecord = InferSelectModel<typeof dnsRecords>;
 export type Client = InferSelectModel<typeof clients>;

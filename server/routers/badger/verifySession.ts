@@ -30,6 +30,7 @@ import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getCountryCodeForIp } from "@server/lib/geoip";
 import { getAsnForIp } from "@server/lib/asn";
+import { evaluatePolicies } from "@server/lib/policyEvaluator";
 import { getOrgTierData } from "#dynamic/lib/billing";
 import { TierId } from "@server/lib/billing/tiers";
 import { verifyPassword } from "@server/auth/password";
@@ -264,6 +265,51 @@ export async function verifyResourceSession(
             }
 
             // otherwise its undefined and we pass
+        }
+
+        // Check access policies (Cloudflare WAF-style rules)
+        const policyAction = await evaluatePolicies(resource.resourceId, {
+            clientIp,
+            path,
+            headers: headers || {},
+            method,
+            countryCode: ipCC,
+            asn: ipAsn
+        }, resource.orgId);
+
+        if (policyAction === "ACCEPT") {
+            logger.debug("Resource allowed by policy");
+
+            logRequestAudit(
+                {
+                    action: true,
+                    reason: 100, // allowed by policy
+                    resourceId: resource.resourceId,
+                    orgId: resource.orgId,
+                    location: ipCC
+                },
+                parsedBody.data
+            );
+
+            return allowed(res);
+        } else if (policyAction === "DROP") {
+            logger.debug("Resource denied by policy");
+
+            logRequestAudit(
+                {
+                    action: false,
+                    reason: 203, // dropped by policy
+                    resourceId: resource.resourceId,
+                    orgId: resource.orgId,
+                    location: ipCC
+                },
+                parsedBody.data
+            );
+
+            return notAllowed(res);
+        } else if (policyAction === "PASS") {
+            logger.debug("Resource passed by policy, continuing to auth checks");
+            // Continue to authentication checks below
         }
 
         // IMPORTANT: ADD NEW AUTH CHECKS HERE OR WHEN TURNING OFF ALL OTHER AUTH METHODS IT WILL JUST PASS

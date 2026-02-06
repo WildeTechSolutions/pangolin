@@ -21,7 +21,8 @@ import {
     GlobeLock,
     Smartphone,
     Laptop,
-    ChartLine
+    ChartLine,
+    Shield
 } from "lucide-react";
 
 export type SidebarNavSection = {
@@ -127,6 +128,11 @@ export const orgNavSections = (): SidebarNavSection[] => [
                 title: "sidebarRoles",
                 href: "/{orgId}/settings/access/roles",
                 icon: <Users className="size-4 flex-none" />
+            },
+            {
+                title: "sidebarPolicies",
+                href: "/{orgId}/settings/access/policies",
+                icon: <Shield className="size-4 flex-none" />
             },
             ...(build == "saas"
                 ? [
