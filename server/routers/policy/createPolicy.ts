@@ -83,8 +83,15 @@ export async function createPolicy(
     }
 
     const { orgId } = parsedParams.data;
-    const { name, description, enabled, action, scope, priority, conditionGroups } =
-        parsedBody.data;
+    const {
+        name,
+        description,
+        enabled,
+        action,
+        scope,
+        priority,
+        conditionGroups
+    } = parsedBody.data;
 
     try {
         const now = new Date().toISOString();

@@ -130,9 +130,7 @@ export async function verifyResourceSession(
             ? await getCountryCodeFromIp(clientIp)
             : undefined;
 
-        const ipAsn = clientIp
-            ? await getAsnFromIp(clientIp)
-            : undefined;
+        const ipAsn = clientIp ? await getAsnFromIp(clientIp) : undefined;
 
         let cleanHost = host;
         // if the host ends with :port, strip it
@@ -268,14 +266,18 @@ export async function verifyResourceSession(
         }
 
         // Check access policies (Cloudflare WAF-style rules)
-        const policyAction = await evaluatePolicies(resource.resourceId, {
-            clientIp,
-            path,
-            headers: headers || {},
-            method,
-            countryCode: ipCC,
-            asn: ipAsn
-        }, resource.orgId);
+        const policyAction = await evaluatePolicies(
+            resource.resourceId,
+            {
+                clientIp,
+                path,
+                headers: headers || {},
+                method,
+                countryCode: ipCC,
+                asn: ipAsn
+            },
+            resource.orgId
+        );
 
         if (policyAction === "ACCEPT") {
             logger.debug("Resource allowed by policy");
@@ -308,7 +310,9 @@ export async function verifyResourceSession(
 
             return notAllowed(res);
         } else if (policyAction === "PASS") {
-            logger.debug("Resource passed by policy, continuing to auth checks");
+            logger.debug(
+                "Resource passed by policy, continuing to auth checks"
+            );
             // Continue to authentication checks below
         }
 
